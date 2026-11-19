@@ -193,7 +193,16 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", default=str(ROOT / "data" / "pnw_catalog.csv"))
     ap.add_argument("--synthetic", action="store_true", help="train on fake data (smoke test only)")
+    ap.add_argument(
+        "--drop-depth",
+        action="store_true",
+        help="leave depth out of the features (checks reliance on analyst-fixed blast depths); "
+        "overwrites reports/ and models/",
+    )
     args = ap.parse_args()
+
+    if args.drop_depth:
+        FEATURES.remove("depth")  # shared list: build_features and the report both follow it
 
     if args.synthetic:
         from .synthetic import make_catalog

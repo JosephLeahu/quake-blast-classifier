@@ -22,7 +22,7 @@ flowchart LR
 ## Design decisions to talk about in interviews
 
 - **Time-based split, not a random one.** The model trains on the past and is tested on the newest 20% of events, the way it would be used in practice. A random split leaks information, such as the same quarry blasting the same week, into the test set.
-- **PR-AUC as the main metric.** Blasts are a small minority of events, so 90%+ accuracy is possible by always predicting "earthquake." Precision-recall AUC reflects how well the model actually finds blasts.
+- **PR-AUC as the main metric.** Blasts are a minority of events (about 19% here), so a model that always predicts "earthquake" scores over 80% accuracy while finding zero blasts. Precision-recall AUC reflects how well the model actually finds blasts.
 - **Threshold tuning on a separate validation period.** The 0.5 default isn't optimal for imbalanced data. The threshold is chosen on validation data and never on the test set.
 - **Domain features.** Blasts happen on weekday working hours, at the surface. Local hour uses cyclic sin/cos encoding so 11 PM sits next to 1 AM, and it's converted to Pacific time with daylight saving handled.
 - **Permutation importance** shows which features the model actually relies on.
@@ -49,7 +49,31 @@ curl -X POST localhost:8000/predict -H 'Content-Type: application/json' -d '[
 
 ## Results
 
-Results on the real USGS catalog haven't been recorded here yet. Run `python -m quake.fetch` and then `python -m quake.train` to produce `reports/REPORT.md` (test PR-AUC, precision, recall and F1 for the prior baseline, logistic regression and gradient boosting) plus the precision-recall and hour-of-day charts in `reports/`.
+30,284 USGS events in Washington and Oregon, 2015–2024 (24,466 earthquakes and 5,818 explosions or quarry blasts). The models train on events through June 2023 and are tested on the 6,057 events after that, so the test set is entirely in the future relative to training.
+
+| Model | Test PR-AUC | Precision | Recall | F1 |
+|---|---|---|---|---|
+| Baseline (always predicts the base rate) | 0.175 | 0.000 | 0.000 | 0.000 |
+| Logistic regression | 0.898 | 0.881 | 0.947 | 0.913 |
+| **Gradient boosting** | **0.984** | **0.938** | **0.976** | **0.957** |
+
+![Precision-recall curve](reports/pr_curve.png)
+![Events by hour](reports/hour_of_day.png)
+
+Blasts cluster between 10 a.m. and 5 p.m. local time, while earthquakes are spread evenly across the day. That's the time-of-day signal the features are built to capture.
+
+### Checking for a shortcut: depth
+
+Depth is by far the most important feature in the full model. Looking closer, nearly every blast in the catalog has a slightly negative depth (at the ground surface, above sea level), and the same exact values repeat hundreds of times. That suggests analysts fix a blast's depth to the surface after identifying it. If so, depth partly encodes the label, and a model relying on it would do worse on events that haven't been reviewed yet.
+
+To measure that, `python -m quake.train --drop-depth` retrains without depth:
+
+| Model (no depth) | Test PR-AUC | Precision | Recall | F1 |
+|---|---|---|---|---|
+| Logistic regression | 0.750 | 0.715 | 0.825 | 0.766 |
+| **Gradient boosting** | **0.930** | **0.831** | **0.915** | **0.871** |
+
+Without depth, the model still separates blasts well using magnitude, location and time of day. That 0.930 is the more conservative estimate of real-world performance. Full details are in [`reports/REPORT.md`](reports/REPORT.md).
 
 > `python -m quake.train --synthetic` runs the whole pipeline on generated fake data, for testing without internet. Its report is stamped **SYNTHETIC** and its numbers mean nothing.
 
