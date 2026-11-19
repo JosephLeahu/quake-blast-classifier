@@ -16,30 +16,40 @@ from __future__ import annotations
 
 import argparse
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import joblib
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-import numpy as np  # noqa: E402
-import pandas as pd  # noqa: E402
-from sklearn.base import clone  # noqa: E402
-from sklearn.dummy import DummyClassifier  # noqa: E402
-from sklearn.ensemble import HistGradientBoostingClassifier  # noqa: E402
-from sklearn.impute import SimpleImputer  # noqa: E402
-from sklearn.inspection import permutation_importance  # noqa: E402
-from sklearn.linear_model import LogisticRegression  # noqa: E402
-from sklearn.metrics import (  # noqa: E402
-    average_precision_score, confusion_matrix, f1_score, precision_recall_curve,
-    precision_score, recall_score, roc_auc_score,
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.base import clone
+from sklearn.dummy import DummyClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.impute import SimpleImputer
+from sklearn.inspection import permutation_importance
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import (
+    average_precision_score,
+    confusion_matrix,
+    f1_score,
+    precision_recall_curve,
+    precision_score,
+    recall_score,
+    roc_auc_score,
 )
-from sklearn.pipeline import make_pipeline  # noqa: E402
-from sklearn.preprocessing import StandardScaler  # noqa: E402
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
-from .features import FEATURES, build_features, label_and_filter, time_split  # noqa: E402
+from .features import (
+    FEATURES,
+    build_features,
+    label_and_filter,
+    time_split,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -109,7 +119,7 @@ def run(df_raw: pd.DataFrame, out_dir: Path = ROOT, data_label: str = "real", se
 
     summary = {
         "data": data_label,
-        "trained_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "trained_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "n_events": len(df),
         "blast_rate": round(float(df["is_blast"].mean()), 4),
         "train_period": [str(train_df["time"].iloc[0]), str(train_df["time"].iloc[-1])],

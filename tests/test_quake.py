@@ -1,3 +1,4 @@
+import itertools
 from datetime import date
 
 import numpy as np
@@ -22,7 +23,7 @@ def test_month_windows_cover_range_without_gaps():
     assert w[0] == (date(2023, 11, 15), date(2023, 12, 1))
     assert w[1] == (date(2023, 12, 1), date(2024, 1, 1))
     assert w[-1][1] == date(2024, 2, 10)
-    assert all(a[1] == b[0] for a, b in zip(w, w[1:]))
+    assert all(a[1] == b[0] for a, b in itertools.pairwise(w))
 
 
 def test_build_params():

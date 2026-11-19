@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
 
 import joblib
 import pandas as pd
@@ -13,7 +12,7 @@ from .features import build_features
 
 MODEL_PATH = Path(__file__).resolve().parent.parent / "models" / "model.joblib"
 app = FastAPI(title="Earthquake vs. Blast Classifier", version="1.0.0")
-_bundle: Optional[dict] = None
+_bundle: dict | None = None
 
 
 def bundle() -> dict:
@@ -32,10 +31,10 @@ class Event(BaseModel):
     depth: float = Field(..., description="km")
     mag: float
     magType: str = "ml"
-    nst: Optional[float] = None
-    gap: Optional[float] = None
-    dmin: Optional[float] = None
-    rms: Optional[float] = None
+    nst: float | None = None
+    gap: float | None = None
+    dmin: float | None = None
+    rms: float | None = None
 
 
 @app.get("/health")

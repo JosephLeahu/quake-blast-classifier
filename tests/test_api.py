@@ -4,11 +4,11 @@ import pytest
 pytest.importorskip("fastapi")
 pytest.importorskip("httpx")
 
-from fastapi.testclient import TestClient  # noqa: E402
+from fastapi.testclient import TestClient
 
-from quake import api  # noqa: E402
-from quake.synthetic import make_catalog  # noqa: E402
-from quake.train import run  # noqa: E402
+from quake import api
+from quake.synthetic import make_catalog
+from quake.train import run
 
 
 @pytest.fixture(scope="module")
